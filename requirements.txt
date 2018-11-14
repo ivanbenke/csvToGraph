@@ -1,5 +1,5 @@
 application has to be standalone
-load csv file
-present the user with headers loaded from csv file
-enable user to choose which data he wants to see
+load csv file +
+present the user with headers loaded from csv file +
+enable user to choose which data he wants to see +
 plot the data and save it in .jpg format in desired location

@@ -16,7 +16,8 @@ for frame in [main_frame, browse_frame, info_frame]:
 	frame.pack(expand = True, fill = 'both', side = LEFT)
 
 def apply_settings():
-	return
+	dir_name = tkFileDialog.askdirectory()
+	print(dir_name)
 
 def open_csv_file():
 	for widget in info_frame.winfo_children():
