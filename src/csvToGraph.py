@@ -1,7 +1,9 @@
 import csv
 from tkinter import *
 from tkinter.filedialog import *
+from matplotlib import pyplot as plt
 import os
+from copy import deepcopy
 
 root = Tk()
 
@@ -9,29 +11,52 @@ main_frame = Frame(root)
 browse_frame = Frame(main_frame)
 info_frame = Frame(main_frame)
 
+header_array = []
 checked_dict = {}
+global g_data_logger
 
 for frame in [main_frame, browse_frame, info_frame]:
     frame.pack(expand = True, fill = "both", side = "left")
 
-def apply_settings():
-    for (key, value) in checked_dict.items():
-        if value.get() == 1:
-            print(key)
-            print(value.get())
+def apply_settings(f_data_logger, f_date_index, f_time_index):
+    index_array = []
     dir_name = askdirectory()
     print(dir_name)
+    if dir_name:
+        for (key, value) in checked_dict.items():
+            if value.get() == 1:
+                print(key)
+                # print(value.get())
+                for element in header_array:
+                    if key == element:
+                        index_array.append(header_array.index(element) + 2) # 2 is for Date and Time which are in .csv file but not in header_array
+        for index in index_array:
+            values_array = []
+            time_array = []
+            for row in f_data_logger:
+                values_array.append(float(row[index]))
+                time_array.append(row[f_time_index])
+            plt.plot(time_array, values_array)
+            plt.xlabel("Time")
+            plt.ylabel("y axis")
+            graph_filename = dir_name + "/graph.png"
+            plt.savefig(graph_filename)#, bbox_inches="tight")
+        print(index_array)
+        # plot graph
+        # print(graph_filename)
+        # with open(graph_filename, "w+") as graph_file:
+        #     pass
+    else:
+        print("Please select an output directory")
 
 def open_csv_file():
     for widget in info_frame.winfo_children():
         widget.destroy()
 
-    file_name = askopenfilename(initialdir = root, title = "Select CSV file", filetypes = (("CSV files", "*.csv"),("all files", "*.*")))
+    csv_filename = askopenfilename(initialdir = root, title = "Select CSV file", filetypes = (("CSV files", "*.csv"), ("all files", "*.*")))
 
-    if file_name:
-        header_array = []
+    if csv_filename:
         row_number = 0
-        col_number = 0
         num_of_rows = 0
 
         header_window = Toplevel(root)
@@ -40,23 +65,36 @@ def open_csv_file():
         for frame in [header_frame, apply_frame]:
             frame.pack(expand = True, fill = "both", side = "left")
 
-        apply_button = Button(apply_frame, text = "Apply", command = apply_settings)
-        apply_button.pack(side = "bottom")
+        # apply_button = Button(apply_frame, text = "Apply", command = lambda: apply_settings(data_logger))
+        # apply_button.pack(side = "bottom")
 
-        with open(file_name) as csv_file:
-            data_logger = csv.reader(csv_file, delimiter=",")
-            col_number = len(next(data_logger)) - 1
+        with open(csv_filename) as csv_file:
+            data_logger = csv.reader(csv_file, delimiter = ",")
+            g_data_logger = deepcopy(list(data_logger))
+            g_data_logger = g_data_logger[1:-2]
             csv_file.seek(0)
+            date_index = 0
+            time_index = 0
 
             for row in data_logger:
                 if row_number == 0:
                     for element in row:
-                        if element:
+                        # print(element)
+                        if element and element != "Date" and element != "Time":
                             header_array.append(element)
+                        if element == "Date":
+                            date_index = row.index(element)
+                        if element == "Time":
+                            time_index = row.index(element)
                 row_number += 1
+            # print(time_index)
+            # print(date_index)
             num_of_rows = row_number
             row_number = 0
             csv_file.seek(0)
+
+        apply_button = Button(apply_frame, text = "Apply", command = lambda: apply_settings(g_data_logger, date_index, time_index))
+        apply_button.pack(side = "bottom")
 
         number_row = 0
         number_column = 0
