@@ -7,15 +7,53 @@ from copy import deepcopy
 
 root = Tk()
 
-main_frame = Frame(root)
+main_frame = Frame(root, width="500", height="800")
+
+search_frame = Frame(main_frame)
+
+header_canvas = Canvas(main_frame)
+header_frame = Frame(header_canvas)
+vertical_sb = Scrollbar(main_frame, orient="vertical", command=header_canvas.yview)
+header_canvas.configure(yscrollcommand=vertical_sb.set)
+
 browse_frame = Frame(main_frame)
 info_frame = Frame(main_frame)
+apply_frame = Frame(main_frame)
+
+main_frame.pack(expand = True, fill = "both", side = "left")
+main_frame.pack_propagate(0)
+
+search_frame.pack(expand = True, fill = "x", side = "top")
+# search_frame.pack_propagate(0)
+search_label = Label(search_frame, text = "Search for option")
+search_label.pack(side = "top")
+
+header_canvas.pack(expand = True, fill = "y", side = "top")
+# header_canvas.pack_propagate(0)
+
+header_frame.pack(expand = True, fill = "y", side = "left")
+header_frame.pack_propagate(0)
+vertical_sb.pack(side="right", fill="y")
+
+browse_frame.pack(expand = True, fill = "x", side = "bottom")
+# browse_frame.pack_propagate(0)
+
+info_frame.pack(expand = True, fill = "x", side = "bottom")
+# info_frame.pack_propagate(0)
+
+apply_frame.pack(expand = True, fill = "both", side = "bottom")
+# apply_frame.pack_propagate(0)
+
+# for frame in [header_frame, apply_frame]:
+#     frame.pack(expand = True, fill = "both", side = "left")
+#     frame.pack_propagate(0)
+
+# for frame in [main_frame, browse_frame, info_frame]:
+#     frame.pack(expand = True, fill = "both", side = "left")
+#     frame.pack_propagate(0)
 
 header_array = []
 checked_dict = {}
-
-for frame in [main_frame, browse_frame, info_frame]:
-    frame.pack(expand = True, fill = "both", side = "left")
 
 def apply_settings(f_data_logger, f_date_index, f_time_index):
     index_array = []
@@ -39,7 +77,7 @@ def apply_settings(f_data_logger, f_date_index, f_time_index):
             plt.xlabel(header_array[f_time_index])
             plt.ylabel(header_array[index])
             graph_filename = dir_name + "/" + header_array[index]
-            plt.savefig(graph_filename, bbox_inches="tight")
+            plt.savefig(graph_filename)
             plt.clf()
         print(index_array)
         # plot graph
@@ -57,11 +95,11 @@ def open_csv_file():
         row_number = 0
         num_of_rows = 0
 
-        header_window = Toplevel(root)
-        header_frame = Frame(header_window)
-        apply_frame = Frame(header_window)
-        for frame in [header_frame, apply_frame]:
-            frame.pack(expand = True, fill = "both", side = "left")
+        # header_window = Toplevel(root)
+        # header_frame = Frame(header_window)
+        # apply_frame = Frame(header_window)
+        # for frame in [header_frame, apply_frame]:
+        #     frame.pack(expand = True, fill = "both", side = "left")
 
         # apply_button = Button(apply_frame, text = "Apply", command = lambda: apply_settings(data_logger))
         # apply_button.pack(side = "bottom")
@@ -100,9 +138,9 @@ def open_csv_file():
         for item in header_array:
             if item != "Date" and item != "Time":
                 checked_var = IntVar()
-                if number_row == 20:
-                    number_row = 0
-                    number_column += 1
+                # if number_row == 20:
+                #     number_row = 0
+                #     number_column += 1
                 Checkbutton(header_frame, text = item, variable = checked_var).grid(row = number_row, column = number_column)
                 checked_dict.update({item:checked_var})
                 number_row += 1
@@ -113,10 +151,10 @@ def open_csv_file():
 browse_button = Button(browse_frame, text = "Browse", command = open_csv_file)
 browse_button.pack(side = "left")
 
-def on_closing():
+def on_close():
     plt.close()
     root.destroy()
 
-root.protocol("WM_DELETE_WINDOW", on_closing)
+root.protocol("WM_DELETE_WINDOW", on_close)
 
 root.mainloop()
