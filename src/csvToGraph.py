@@ -2,55 +2,87 @@ import csv
 from tkinter import *
 from tkinter import filedialog as fd
 from matplotlib import pyplot as plt
-import os
 from copy import deepcopy
+from sys import platform
+import os
+
+def _configure_frame_scrolling(canvas):
+    canvas.configure(scrollregion=canvas.bbox("all"))
+
+def _mouse_wheel_handler(event):
+    if sys.platform.startswith("linux") or sys.platform.startswith("win32"):
+        scroll_count = int(-1*(event.delta/120))
+    elif sys.platform.startswith("darwin"):
+        scroll_count = int(event.delta)
+    header_canvas.yview_scroll(scroll_count, "units")
+
+def _bound_to_mousewheel(event):
+    # Windows/Mac
+    header_canvas.bind_all("<MouseWheel>", _mouse_wheel_handler)
+    # Linux
+    header_canvas.bind_all("<Button-4>", _mouse_wheel_handler)
+    header_canvas.bind_all("<Button-5>", _mouse_wheel_handler)
+
+def _unbound_to_mousewheel(event):
+    # Windows/Mac
+    header_canvas.unbind_all("<MouseWheel>")
+    # Linux
+    header_canvas.unbind_all("<Button-4>")
+    header_canvas.unbind_all("<Button-5>")
 
 root = Tk()
 
 main_frame = Frame(root, width="500", height="800")
-
-search_frame = Frame(main_frame)
-
-header_canvas = Canvas(main_frame)
-header_frame = Frame(header_canvas)
-vertical_sb = Scrollbar(main_frame, orient="vertical", command=header_canvas.yview)
-header_canvas.configure(yscrollcommand=vertical_sb.set)
-
-browse_frame = Frame(main_frame)
-info_frame = Frame(main_frame)
-apply_frame = Frame(main_frame)
-
 main_frame.pack(expand = True, fill = "both", side = "left")
 main_frame.pack_propagate(0)
 
+search_frame = Frame(main_frame)
 search_frame.pack(expand = True, fill = "x", side = "top")
 # search_frame.pack_propagate(0)
-search_label = Label(search_frame, text = "Search for option")
-search_label.pack(side = "top")
+search_label = Entry(search_frame)
+search_label.pack(expand = True, fill = "x", side = "top")
 
-header_canvas.pack(expand = True, fill = "y", side = "top")
+main_header_frame = Frame(main_frame, width="480", height="700")
+main_header_frame.pack(expand = True, fill = "both", side = "top")
+main_header_frame.pack_propagate(0)
+
+header_canvas = Canvas(main_header_frame)
+header_frame = Frame(header_canvas)
+vertical_sb = Scrollbar(main_header_frame, orient="vertical", command=header_canvas.yview)
+
+header_canvas.configure(yscrollcommand=vertical_sb.set)
+
+vertical_sb.pack(fill="y", side="right")
+
+header_canvas.pack(expand = True, fill = "y", side = "left")
 # header_canvas.pack_propagate(0)
+header_canvas.create_window((4,4), window=header_frame, anchor="nw")
 
-header_frame.pack(expand = True, fill = "y", side = "left")
-header_frame.pack_propagate(0)
-vertical_sb.pack(side="right", fill="y")
+header_frame.bind("<Configure>", lambda event, canvas=header_canvas: _configure_frame_scrolling(header_canvas))
 
+header_frame.bind("<Enter>", _bound_to_mousewheel)
+header_frame.bind("<Leave>", _unbound_to_mousewheel)
+
+# # Windows/Mac
+# header_canvas.bind_all("<MouseWheel>", _mouse_wheel_handler)
+# # Linux
+# header_canvas.bind_all("<Button-4>", _mouse_wheel_handler)
+# header_canvas.bind_all("<Button-5>", _mouse_wheel_handler)
+
+# header_frame.pack(expand = True, fill = "y", side = "top")
+# header_frame.pack_propagate(0)
+
+browse_frame = Frame(main_frame)
 browse_frame.pack(expand = True, fill = "x", side = "bottom")
 # browse_frame.pack_propagate(0)
 
+info_frame = Frame(main_frame)
 info_frame.pack(expand = True, fill = "x", side = "bottom")
 # info_frame.pack_propagate(0)
 
-apply_frame.pack(expand = True, fill = "both", side = "bottom")
+apply_frame = Frame(main_frame)
+apply_frame.pack(expand = True, fill = "x", side = "right")
 # apply_frame.pack_propagate(0)
-
-# for frame in [header_frame, apply_frame]:
-#     frame.pack(expand = True, fill = "both", side = "left")
-#     frame.pack_propagate(0)
-
-# for frame in [main_frame, browse_frame, info_frame]:
-#     frame.pack(expand = True, fill = "both", side = "left")
-#     frame.pack_propagate(0)
 
 header_array = []
 checked_dict = {}
