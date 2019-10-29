@@ -1,5 +1,5 @@
 import csv
-from tkinter import *
+import tkinter as tk
 from tkinter import filedialog as fd
 from matplotlib import pyplot as plt
 from copy import deepcopy
@@ -30,59 +30,53 @@ def _unbound_to_mousewheel(event):
     header_canvas.unbind_all("<Button-4>")
     header_canvas.unbind_all("<Button-5>")
 
-root = Tk()
+root = tk.Tk()
 
-main_frame = Frame(root, width="500", height="800")
+main_frame = tk.Frame(root, width="500", height="800")
 main_frame.pack(expand = True, fill = "both", side = "left")
 main_frame.pack_propagate(0)
 
-search_frame = Frame(main_frame)
+search_frame = tk.Frame(main_frame)
 search_frame.pack(expand = True, fill = "x", side = "top")
-# search_frame.pack_propagate(0)
-search_label = Entry(search_frame)
-search_label.pack(expand = True, fill = "x", side = "top")
 
-main_header_frame = Frame(main_frame, width="480", height="700")
+search_entry = tk.Entry(search_frame)
+search_entry.pack(expand = True, fill = "x", side = "left")
+
+search_button = tk.Button(search_frame, text = "Search", state = "disabled")
+search_button.pack(side = "right")
+
+main_header_frame = tk.Frame(main_frame, width="480", height="700")
 main_header_frame.pack(expand = True, fill = "both", side = "top")
 main_header_frame.pack_propagate(0)
 
-header_canvas = Canvas(main_header_frame)
-header_frame = Frame(header_canvas)
-vertical_sb = Scrollbar(main_header_frame, orient="vertical", command=header_canvas.yview)
+header_canvas = tk.Canvas(main_header_frame)
+header_frame = tk.Frame(header_canvas)
+vertical_sb = tk.Scrollbar(main_header_frame, orient="vertical", command=header_canvas.yview)
 
 header_canvas.configure(yscrollcommand=vertical_sb.set)
 
 vertical_sb.pack(fill="y", side="right")
 
 header_canvas.pack(expand = True, fill = "y", side = "left")
-# header_canvas.pack_propagate(0)
 header_canvas.create_window((4,4), window=header_frame, anchor="nw")
 
 header_frame.bind("<Configure>", lambda event, canvas=header_canvas: _configure_frame_scrolling(header_canvas))
 
-header_frame.bind("<Enter>", _bound_to_mousewheel)
-header_frame.bind("<Leave>", _unbound_to_mousewheel)
+main_header_frame.bind("<Enter>", _bound_to_mousewheel)
+main_header_frame.bind("<Leave>", _unbound_to_mousewheel)
 
-# # Windows/Mac
-# header_canvas.bind_all("<MouseWheel>", _mouse_wheel_handler)
-# # Linux
-# header_canvas.bind_all("<Button-4>", _mouse_wheel_handler)
-# header_canvas.bind_all("<Button-5>", _mouse_wheel_handler)
+browse_frame = tk.Frame(main_frame)
+browse_frame.pack(expand = True, fill = "x", side = "left")
+browse_button = tk.Button(browse_frame, text = "Browse")
+browse_button.pack(side = "left")
 
-# header_frame.pack(expand = True, fill = "y", side = "top")
-# header_frame.pack_propagate(0)
+info_frame = tk.Frame(main_frame)
+info_frame.pack(expand = True, fill = "x", side = "left")
 
-browse_frame = Frame(main_frame)
-browse_frame.pack(expand = True, fill = "x", side = "bottom")
-# browse_frame.pack_propagate(0)
-
-info_frame = Frame(main_frame)
-info_frame.pack(expand = True, fill = "x", side = "bottom")
-# info_frame.pack_propagate(0)
-
-apply_frame = Frame(main_frame)
+apply_frame = tk.Frame(main_frame)
 apply_frame.pack(expand = True, fill = "x", side = "right")
-# apply_frame.pack_propagate(0)
+apply_button = tk.Button(apply_frame, text = "Apply", state = "disabled")
+apply_button.pack(side = "right")
 
 header_array = []
 checked_dict = {}
@@ -90,12 +84,9 @@ checked_dict = {}
 def apply_settings(f_data_logger, f_date_index, f_time_index):
     index_array = []
     dir_name = fd.askdirectory()
-    print(dir_name)
     if dir_name:
         for (key, value) in checked_dict.items():
             if value.get() == 1:
-                print(key)
-                # print(value.get())
                 for element in header_array:
                     if key == element:
                         index_array.append(header_array.index(element))
@@ -111,11 +102,11 @@ def apply_settings(f_data_logger, f_date_index, f_time_index):
             graph_filename = dir_name + "/" + header_array[index]
             plt.savefig(graph_filename)
             plt.clf()
-        print(index_array)
-        # plot graph
-        # print(graph_filename)
     else:
         print("Please select an output directory")
+
+def search_for_regex(regex_input):
+    pass
 
 def open_csv_file():
     for widget in info_frame.winfo_children():
@@ -127,14 +118,6 @@ def open_csv_file():
         row_number = 0
         num_of_rows = 0
 
-        # header_window = Toplevel(root)
-        # header_frame = Frame(header_window)
-        # apply_frame = Frame(header_window)
-        # for frame in [header_frame, apply_frame]:
-        #     frame.pack(expand = True, fill = "both", side = "left")
-
-        # apply_button = Button(apply_frame, text = "Apply", command = lambda: apply_settings(data_logger))
-        # apply_button.pack(side = "bottom")
         g_data_logger = []
 
         with open(csv_filename) as csv_file:
@@ -148,40 +131,33 @@ def open_csv_file():
             for row in data_logger:
                 if row_number == 0:
                     for element in row:
-                        # print(element)
-                        if element:# and element != "Date" and element != "Time":
+                        if element:
                             header_array.append(element)
                         if element == "Date":
                             date_index = row.index(element)
                         if element == "Time":
                             time_index = row.index(element)
                 row_number += 1
-            # print(time_index)
-            # print(date_index)
             num_of_rows = row_number
             row_number = 0
             csv_file.seek(0)
-
-        apply_button = Button(apply_frame, text = "Apply", command = lambda: apply_settings(g_data_logger, date_index, time_index))
-        apply_button.pack(side = "bottom")
 
         number_row = 0
         number_column = 0
         for item in header_array:
             if item != "Date" and item != "Time":
-                checked_var = IntVar()
-                # if number_row == 20:
-                #     number_row = 0
-                #     number_column += 1
-                Checkbutton(header_frame, text = item, variable = checked_var).grid(row = number_row, column = number_column)
+                checked_var = tk.IntVar()
+                tk.Checkbutton(header_frame, text = item, variable = checked_var).grid(row = number_row, column = number_column, sticky = "w")
                 checked_dict.update({item:checked_var})
                 number_row += 1
+
+        apply_button.config(state = "normal", command = lambda: apply_settings(g_data_logger, date_index, time_index))
+        search_button.config(state = "normal", command = lambda: search_for_regex(search_entry.get()))
     else:
-        info_label = Label(info_frame, text = "File not selected")
+        info_label = tk.Label(info_frame, text = "File not selected")
         info_label.pack(side = "left")
 
-browse_button = Button(browse_frame, text = "Browse", command = open_csv_file)
-browse_button.pack(side = "left")
+browse_button.config(command = open_csv_file)
 
 def on_close():
     plt.close()
