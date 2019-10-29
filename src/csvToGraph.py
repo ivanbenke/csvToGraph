@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 from copy import deepcopy
 from sys import platform
 import os
+import re
 
 def _on_close():
     plt.close()
@@ -85,6 +86,30 @@ apply_button.pack(side = "right")
 header_array = []
 checked_dict = {}
 
+def populate_checklist(search_term = None):
+    for widget in header_frame.winfo_children():
+        widget.destroy()
+
+    number_row = 0
+    number_column = 0
+    if search_term:
+        regex_string = r".*" + re.escape(search_term) + r".*"
+        for item in header_array:
+            if item != "Date" and item != "Time":
+                regex_object = re.search(regex_string, item, re.IGNORECASE)
+                if regex_object:
+                    checked_var = tk.IntVar()
+                    tk.Checkbutton(header_frame, text = regex_object.group(), variable = checked_var).grid(row = number_row, column = number_column, sticky = "w")
+                    checked_dict.update({item:checked_var})
+                    number_row += 1
+    else:
+        for item in header_array:
+            if item != "Date" and item != "Time":
+                checked_var = tk.IntVar()
+                tk.Checkbutton(header_frame, text = item, variable = checked_var).grid(row = number_row, column = number_column, sticky = "w")
+                checked_dict.update({item:checked_var})
+                number_row += 1
+
 def apply_settings(f_data_logger, f_date_index, f_time_index):
     index_array = []
     dir_name = fd.askdirectory()
@@ -111,8 +136,11 @@ def apply_settings(f_data_logger, f_date_index, f_time_index):
     else:
         print("Please select an output directory")
 
-def search_for_regex(regex_input):
-    pass
+def search_for_regex(text_input):
+    if text_input:
+        populate_checklist(text_input)
+    else:
+        populate_checklist()
 
 def open_csv_file():
     for widget in info_frame.winfo_children():
@@ -163,14 +191,15 @@ def open_csv_file():
                 header_array[i] = header_array[i].replace(header_array[i], header_array[i][:start_index])
                 header_array[i] = header_array[i].strip()
 
-        number_row = 0
-        number_column = 0
-        for item in header_array:
-            if item != "Date" and item != "Time":
-                checked_var = tk.IntVar()
-                tk.Checkbutton(header_frame, text = item, variable = checked_var).grid(row = number_row, column = number_column, sticky = "w")
-                checked_dict.update({item:checked_var})
-                number_row += 1
+        populate_checklist()
+        # number_row = 0
+        # number_column = 0
+        # for item in header_array:
+        #     if item != "Date" and item != "Time":
+        #         checked_var = tk.IntVar()
+        #         tk.Checkbutton(header_frame, text = item, variable = checked_var).grid(row = number_row, column = number_column, sticky = "w")
+        #         checked_dict.update({item:checked_var})
+        #         number_row += 1
 
         apply_button.config(state = "normal", command = lambda: apply_settings(g_data_logger, date_index, time_index))
         search_button.config(state = "normal", command = lambda: search_for_regex(search_entry.get()))
