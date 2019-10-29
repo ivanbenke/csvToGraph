@@ -6,13 +6,17 @@ from copy import deepcopy
 from sys import platform
 import os
 
+def _on_close():
+    plt.close()
+    root.destroy()
+
 def _configure_frame_scrolling(canvas):
     canvas.configure(scrollregion=canvas.bbox("all"))
 
 def _mouse_wheel_handler(event):
-    if sys.platform.startswith("linux") or sys.platform.startswith("win32"):
+    if platform.startswith("linux") or platform.startswith("win32"):
         scroll_count = int(-1*(event.delta/120))
-    elif sys.platform.startswith("darwin"):
+    elif platform.startswith("darwin"):
         scroll_count = int(event.delta)
     header_canvas.yview_scroll(scroll_count, "units")
 
@@ -99,8 +103,10 @@ def apply_settings(f_data_logger, f_date_index, f_time_index):
             plt.plot(time_array, values_array)
             plt.xlabel(header_array[f_time_index])
             plt.ylabel(header_array[index])
-            graph_filename = dir_name + "/" + header_array[index]
-            plt.savefig(graph_filename)
+            graph_filename = dir_name + "/" + header_array[index] + ".png"
+            if os.path.isfile(graph_filename):
+                os.remove(graph_filename)
+            plt.savefig(graph_filename, format = "png")
             plt.clf()
     else:
         print("Please select an output directory")
@@ -142,6 +148,21 @@ def open_csv_file():
             row_number = 0
             csv_file.seek(0)
 
+        start_index = 0
+        end_index = 0
+        for i in range(0, len(header_array)):
+            if "/" in header_array[i]:
+                header_array[i] = header_array[i].replace("/", " ")
+            if "\\" in header_array[i]:
+                header_array[i] = header_array[i].replace("\\", " ")
+            if "[" in header_array[i]:
+                start_index = header_array[i].index("[")
+            if "]" in header_array[i]:
+                end_index = header_array[i].index("]")
+            if start_index and end_index and end_index > start_index:
+                header_array[i] = header_array[i].replace(header_array[i], header_array[i][:start_index])
+                header_array[i] = header_array[i].strip()
+
         number_row = 0
         number_column = 0
         for item in header_array:
@@ -159,10 +180,6 @@ def open_csv_file():
 
 browse_button.config(command = open_csv_file)
 
-def on_close():
-    plt.close()
-    root.destroy()
-
-root.protocol("WM_DELETE_WINDOW", on_close)
+root.protocol("WM_DELETE_WINDOW", _on_close)
 
 root.mainloop()
