@@ -83,7 +83,8 @@ apply_frame.pack(expand = True, fill = "x", side = "right")
 apply_button = tk.Button(apply_frame, text = "Apply", state = "disabled")
 apply_button.pack(side = "right")
 
-header_array = []
+header_list_without_units = []
+header_list_with_units = []
 checked_dict = {}
 
 def populate_checklist(search_term = None):
@@ -94,7 +95,7 @@ def populate_checklist(search_term = None):
     number_column = 0
     if search_term:
         regex_string = r".*" + re.escape(search_term) + r".*"
-        for item in header_array:
+        for item in header_list_without_units:
             if item != "Date" and item != "Time":
                 regex_object = re.search(regex_string, item, re.IGNORECASE)
                 if regex_object:
@@ -103,7 +104,7 @@ def populate_checklist(search_term = None):
                     checked_dict.update({item:checked_var})
                     number_row += 1
     else:
-        for item in header_array:
+        for item in header_list_without_units:
             if item != "Date" and item != "Time":
                 checked_var = tk.IntVar()
                 tk.Checkbutton(header_frame, text = item, variable = checked_var).grid(row = number_row, column = number_column, sticky = "w")
@@ -116,9 +117,9 @@ def apply_settings(f_data_logger, f_date_index, f_time_index):
     if dir_name:
         for (key, value) in checked_dict.items():
             if value.get() == 1:
-                for element in header_array:
+                for element in header_list_without_units:
                     if key == element:
-                        index_array.append(header_array.index(element))
+                        index_array.append(header_list_without_units.index(element))
         for index in index_array:
             values_array = []
             time_array = []
@@ -126,9 +127,9 @@ def apply_settings(f_data_logger, f_date_index, f_time_index):
                 values_array.append(float(row[index]))
                 time_array.append(row[f_time_index])
             plt.plot(time_array, values_array)
-            plt.xlabel(header_array[f_time_index])
-            plt.ylabel(header_array[index])
-            graph_filename = dir_name + "/" + header_array[index] + ".png"
+            plt.xlabel(header_list_with_units[f_time_index])
+            plt.ylabel(header_list_with_units[index])
+            graph_filename = dir_name + "/" + header_list_without_units[index] + ".png"
             if os.path.isfile(graph_filename):
                 os.remove(graph_filename)
             plt.savefig(graph_filename, format = "png")
@@ -166,7 +167,7 @@ def open_csv_file():
                 if row_number == 0:
                     for element in row:
                         if element:
-                            header_array.append(element)
+                            header_list_without_units.append(element)
                         if element == "Date":
                             date_index = row.index(element)
                         if element == "Time":
@@ -178,31 +179,26 @@ def open_csv_file():
 
         start_index = 0
         end_index = 0
-        for i in range(0, len(header_array)):
-            if "/" in header_array[i]:
-                header_array[i] = header_array[i].replace("/", " ")
-            if "\\" in header_array[i]:
-                header_array[i] = header_array[i].replace("\\", " ")
-            if "[" in header_array[i]:
-                start_index = header_array[i].index("[")
-            if "]" in header_array[i]:
-                end_index = header_array[i].index("]")
+        for item in header_list_without_units:
+            header_list_with_units.append(item)
+        for i in range(0, len(header_list_without_units)):
+            if "/" in header_list_without_units[i]:
+                header_list_without_units[i] = header_list_without_units[i].replace("/", " ")
+            if "\\" in header_list_without_units[i]:
+                header_list_without_units[i] = header_list_without_units[i].replace("\\", " ")
+            if "[" in header_list_without_units[i]:
+                start_index = header_list_without_units[i].index("[")
+            if "]" in header_list_without_units[i]:
+                end_index = header_list_without_units[i].index("]")
             if start_index and end_index and end_index > start_index:
-                header_array[i] = header_array[i].replace(header_array[i], header_array[i][:start_index])
-                header_array[i] = header_array[i].strip()
+                header_list_without_units[i] = header_list_without_units[i].replace(header_list_without_units[i], header_list_without_units[i][:start_index])
+                header_list_without_units[i] = header_list_without_units[i].strip()
 
         populate_checklist()
-        # number_row = 0
-        # number_column = 0
-        # for item in header_array:
-        #     if item != "Date" and item != "Time":
-        #         checked_var = tk.IntVar()
-        #         tk.Checkbutton(header_frame, text = item, variable = checked_var).grid(row = number_row, column = number_column, sticky = "w")
-        #         checked_dict.update({item:checked_var})
-        #         number_row += 1
 
         apply_button.config(state = "normal", command = lambda: apply_settings(g_data_logger, date_index, time_index))
         search_button.config(state = "normal", command = lambda: search_for_regex(search_entry.get()))
+        search_entry.bind("<Return>", lambda _: search_for_regex(search_entry.get()))
     else:
         info_label = tk.Label(info_frame, text = "File not selected")
         info_label.pack(side = "left")
