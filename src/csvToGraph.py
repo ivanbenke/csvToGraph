@@ -7,6 +7,7 @@ from sys import platform
 import os
 import re
 import time
+from datetime import datetime
 
 def _on_close():
     plt.close()
@@ -130,52 +131,22 @@ def apply_settings(f_data_logger, f_date_index, f_time_index):
             i = 0
             for row in f_data_logger:
                 values_array.append(float(row[index]))
-                # row[f_time_index] = row[f_time_index].replace(row[f_time_index], row[f_time_index][:row[f_time_index].index(".")])
-                # print(row[f_time_index])
                 date_array.append(row[f_date_index])
-                # time_array.append(time.strptime(row[f_time_index], "%H:%M:%S"))
                 time_array.append(row[f_time_index][:row[f_time_index].index(".")])
-            for i in range(0, len(time_array)):
-                first_index = time_array[i].find(":")
-                second_index = time_array[i].find(":", first_index + 1)
-                first_part = ""
-                second_part = ""
-                third_part = ""
-                final_string = ""
-                if len(time_array[i][:first_index]) == 1:
-                    first_part += "0" + time_array[i][:first_index + 1]
-                else:
-                    first_part += time_array[i][:first_index + 1]
-                if len(time_array[i][first_index + 1:second_index]) == 1:
-                    second_part += "0" + time_array[i][first_index + 1:second_index + 1]
-                else:
-                    second_part += time_array[i][first_index + 1:second_index + 1]
-                if len(time_array[i][second_index + 1:]) == 1:
-                    third_part += "0" + time_array[i][second_index + 1:]
-                else:
-                    third_part += time_array[i][second_index + 1:]
-                final_string += first_part + second_part + third_part
-                time_array[i] = time_array[i].replace(time_array[i], final_string)
-                timestamp_array.append(time.strptime(time_array[i], "%H:%M:%S"))
-            # for item in time_array:
-            #     print(item)
-            # for item in date_array:
-            #     print(item)
-            for i in range(0, len(date_array)):
-                datetime_array.append(time.strptime(date_array[i] + " " + time_array[i], "%d.%m.%y %H:%M:%S"))
-            for item in datetime_array:
-                print(item)
-            plt.plot(datetime_array, values_array)
-            plt.xlabel(header_list_with_units[f_time_index])
-            plt.xticks(rotation=90)
-            plt.ylabel(header_list_with_units[index])
-            plt.xlim([0, 150])
-            plt.tight_layout()
-            graph_filename = dir_name + "/" + header_list_without_units[index] + ".png"
-            if os.path.isfile(graph_filename):
-                os.remove(graph_filename)
-            plt.savefig(graph_filename, format = "png", dpi = 300)
-            plt.clf()
+            if len(date_array) == len(time_array):
+                for i in range(0, len(date_array)):
+                    converted_datetime = time.strptime(date_array[i] + " " + time_array[i], "%d.%m.%Y %H:%M:%S")
+                    datetime_array.append(datetime.fromtimestamp(time.mktime(converted_datetime)))
+                plt.plot(datetime_array, values_array)
+                plt.xlabel(header_list_with_units[f_time_index])
+                plt.ylabel(header_list_with_units[index])
+                graph_filename = dir_name + "/" + header_list_without_units[index] + ".png"
+                if os.path.isfile(graph_filename):
+                    os.remove(graph_filename)
+                plt.savefig(graph_filename, format = "png", dpi = 300)
+                plt.clf()
+            else:
+                print("Not enough data supplied")
     else:
         print("Please select an output directory")
 
