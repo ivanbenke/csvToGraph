@@ -6,6 +6,8 @@ from copy import deepcopy
 from sys import platform
 import os
 import re
+import time
+from datetime import datetime
 
 def _on_close():
     plt.close()
@@ -122,18 +124,29 @@ def apply_settings(f_data_logger, f_date_index, f_time_index):
                         index_array.append(header_list_without_units.index(element))
         for index in index_array:
             values_array = []
+            date_array = []
             time_array = []
+            datetime_array = []
+            timestamp_array = []
+            i = 0
             for row in f_data_logger:
                 values_array.append(float(row[index]))
-                time_array.append(row[f_time_index])
-            plt.plot(time_array, values_array)
-            plt.xlabel(header_list_with_units[f_time_index])
-            plt.ylabel(header_list_with_units[index])
-            graph_filename = dir_name + "/" + header_list_without_units[index] + ".png"
-            if os.path.isfile(graph_filename):
-                os.remove(graph_filename)
-            plt.savefig(graph_filename, format = "png")
-            plt.clf()
+                date_array.append(row[f_date_index])
+                time_array.append(row[f_time_index][:row[f_time_index].index(".")])
+            if len(date_array) == len(time_array):
+                for i in range(0, len(date_array)):
+                    converted_datetime = time.strptime(date_array[i] + " " + time_array[i], "%d.%m.%Y %H:%M:%S")
+                    datetime_array.append(datetime.fromtimestamp(time.mktime(converted_datetime)))
+                plt.plot(datetime_array, values_array)
+                plt.xlabel(header_list_with_units[f_time_index])
+                plt.ylabel(header_list_with_units[index])
+                graph_filename = dir_name + "/" + header_list_without_units[index] + ".png"
+                if os.path.isfile(graph_filename):
+                    os.remove(graph_filename)
+                plt.savefig(graph_filename, format = "png", dpi = 300)
+                plt.clf()
+            else:
+                print("Not enough data supplied")
     else:
         print("Please select an output directory")
 
