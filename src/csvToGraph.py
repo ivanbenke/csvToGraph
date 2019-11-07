@@ -127,7 +127,6 @@ def apply_settings(f_data_logger, f_date_index, f_time_index):
             date_array = []
             time_array = []
             datetime_array = []
-            timestamp_array = []
             i = 0
             for row in f_data_logger:
                 values_array.append(float(row[index]))
