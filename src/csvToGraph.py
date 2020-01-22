@@ -137,8 +137,10 @@ def apply_settings(f_data_logger, f_date_index, f_time_index):
                     converted_datetime = time.strptime(date_array[i] + " " + time_array[i], "%d.%m.%Y %H:%M:%S")
                     datetime_array.append(datetime.fromtimestamp(time.mktime(converted_datetime)))
                 plt.plot(datetime_array, values_array)
+                # plt.gcf().subplots_adjust(bottom=0.25)
                 plt.xlabel(header_list_with_units[f_time_index])
                 plt.ylabel(header_list_with_units[index])
+                # plt.xticks(rotation=90)
                 graph_filename = dir_name + "/" + header_list_without_units[index] + ".png"
                 if os.path.isfile(graph_filename):
                     os.remove(graph_filename)
